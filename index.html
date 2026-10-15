@@ -1,0 +1,727 @@
+```html
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERTE 01 - Keuangan Digital Warga</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darknavy: '#0b0f19',
+                        cardnavy: '#131c31',
+                        gold: {
+                            DEFAULT: '#d4af37',
+                            light: '#f3e5ab',
+                            dark: '#aa8c2c',
+                        },
+                        accentgreen: '#10b981',
+                        accentred: '#ef4444'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0f19;
+            color: #f3f4f6;
+        }
+        /* Custom Gold Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0f19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d4af37;
+            border-radius: 3px;
+        }
+        .gold-border {
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        .gold-border-focus:focus {
+            border-color: #d4af37;
+            box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+        }
+        .gold-gradient {
+            background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .gold-btn {
+            background: linear-gradient(135deg, #d4af37 0%, #aa8c2c 100%);
+            color: #0b0f19;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .gold-btn:hover {
+            background: linear-gradient(135deg, #f3e5ab 0%, #d4af37 100%);
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+        }
+        @keyframes pulse-subtle {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .sync-badge {
+            animation: pulse-subtle 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-gold selection:text-darknavy">
+
+    <header class="sticky top-0 z-50 bg-darknavy/90 backdrop-blur-md gold-border border-b">
+        <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-cardnavy gold-border flex items-center justify-center shadow-lg relative">
+                    <i class="fa-solid fa-building-columns text-gold text-lg"></i>
+                    <span class="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 border-2 border-darknavy rounded-full sync-badge" title="Live Synced"></span>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg tracking-wide gold-gradient">ERTE 01</h1>
+                    <p class="text-xs text-gray-400 flex items-center">
+                        <i class="fa-solid fa-cloud text-[10px] text-emerald-400 mr-1"></i> Sinkronisasi Otomatis
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Role Status / Switcher Button -->
+            <div id="auth-status-container">
+                <button onclick="openLoginModal()" id="role-badge" class="px-3 py-1.5 rounded-full text-xs font-medium gold-border bg-cardnavy text-gold hover:bg-gold/10 transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-user-shield text-xs"></i>
+                    <span id="role-text">Mode Anggota</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto w-full px-4 py-6 flex-grow space-y-6">
+
+        <!-- Balance Cards Summary -->
+        <div class="grid grid-cols-1 gap-4">
+            <!-- Total Saldo Card -->
+            <div class="bg-gradient-to-br from-cardnavy to-darknavy p-5 rounded-2xl gold-border shadow-xl relative overflow-hidden">
+                <div class="absolute -right-6 -bottom-6 w-28 h-28 bg-gold/5 rounded-full blur-xl pointer-events-none"></div>
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-xs uppercase tracking-wider text-gray-400 font-medium">Total Saldo Kas RT</span>
+                    <span class="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center text-gold">
+                        <i class="fa-solid fa-wallet text-sm"></i>
+                    </span>
+                </div>
+                <h2 id="total-saldo" class="text-3xl font-bold tracking-tight text-white mb-3">Rp 0</h2>
+                <div class="flex items-center justify-between text-xs pt-3 border-t border-gray-800">
+                    <span class="text-emerald-400 flex items-center"><i class="fa-solid fa-arrow-trend-up mr-1"></i> Masuk: <strong id="summary-masuk" class="ml-1 text-white">Rp 0</strong></span>
+                    <span class="text-rose-400 flex items-center"><i class="fa-solid fa-arrow-trend-down mr-1"></i> Keluar: <strong id="summary-keluar" class="ml-1 text-white">Rp 0</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Quick Action Toolbar (Hidden if not Admin) -->
+        <div id="admin-action-bar" class="hidden grid grid-cols-2 gap-3">
+            <button onclick="openTransactionModal('masuk')" class="gold-btn py-3 px-4 rounded-xl flex items-center justify-center space-x-2 shadow-lg text-sm">
+                <i class="fa-solid fa-circle-plus text-base"></i>
+                <span>Uang Masuk</span>
+            </button>
+            <button onclick="openTransactionModal('keluar')" class="bg-cardnavy gold-border text-rose-400 hover:bg-rose-950/30 py-3 px-4 rounded-xl flex items-center justify-center space-x-2 transition text-sm font-semibold">
+                <i class="fa-solid fa-circle-minus text-base"></i>
+                <span>Uang Keluar</span>
+            </button>
+        </div>
+
+        <!-- Filter & Search Section -->
+        <div class="space-y-3">
+            <div class="flex items-center justify-between">
+                <h3 class="text-sm font-semibold text-gray-200 tracking-wide flex items-center">
+                    <i class="fa-solid fa-clock-rotate-left mr-2 text-gold"></i> Riwayat Transaksi Warga
+                </h3>
+                <span id="transaction-count" class="text-xs px-2 py-0.5 rounded-full bg-cardnavy gold-border text-gray-400">0 Transaksi</span>
+            </div>
+            
+            <div class="flex gap-2">
+                <div class="relative flex-grow">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                        <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                    </span>
+                    <input type="text" id="search-input" oninput="filterTransactions()" placeholder="Cari keterangan..." class="w-full bg-cardnavy gold-border rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-gray-500 gold-border-focus focus:outline-none">
+                </div>
+                <select id="filter-type" onchange="filterTransactions()" class="bg-cardnavy gold-border rounded-xl px-3 py-2 text-xs text-white gold-border-focus focus:outline-none">
+                    <option value="all">Semua</option>
+                    <option value="masuk">Masuk</option>
+                    <option value="keluar">Keluar</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Transaction List Container -->
+        <div id="transaction-list" class="space-y-3 pb-20">
+            <!-- Dynamically populated transaction cards will go here -->
+            <div class="text-center py-10 bg-cardnavy/40 rounded-2xl gold-border">
+                <i class="fa-solid fa-spinner fa-spin text-gold text-2xl mb-2"></i>
+                <p class="text-xs text-gray-400">Menyinkronkan data keuangan real-time...</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Login Modal (Admin Authentication with password: rt01rw01) -->
+    <div id="login-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-cardnavy gold-border w-full max-w-sm rounded-2xl p-6 shadow-2xl relative space-y-4 animate-in fade-in zoom-in duration-200">
+            <div class="flex justify-between items-center pb-2 border-b border-gray-800">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-shield-halved text-gold"></i>
+                    <h3 class="font-bold text-white text-base">Autentikasi Admin</h3>
+                </div>
+                <button onclick="closeLoginModal()" class="text-gray-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <p class="text-xs text-gray-400">Masukkan password khusus admin (<code class="text-gold font-semibold">rt01rw01</code>) untuk mengontrol data keuangan ERTE 01 secara langsung.</p>
+            
+            <form id="login-form" onsubmit="handleAdminLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">Password Admin</label>
+                    <div class="relative">
+                        <input type="password" id="admin-password-input" required placeholder="Masukkan password..." class="w-full bg-darknavy gold-border rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-gray-600 gold-border-focus focus:outline-none">
+                        <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white text-xs">
+                            <i id="eye-icon" class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                    <p id="login-error" class="text-xs text-rose-400 mt-1 hidden">Password salah! Gunakan: rt01rw01</p>
+                </div>
+                <div class="flex space-x-2 pt-2">
+                    <button type="button" onclick="closeLoginModal()" class="w-1/2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-semibold py-2.5 rounded-xl transition">Batal</button>
+                    <button type="submit" class="w-1/2 gold-btn text-xs font-semibold py-2.5 rounded-xl shadow-lg">Masuk Admin</button>
+                </div>
+            </form>
+            
+            <div id="logout-container" class="hidden pt-2 border-t border-gray-800">
+                <button onclick="handleAdminLogout()" class="w-full bg-rose-900/40 hover:bg-rose-900/60 text-rose-300 text-xs font-semibold py-2.5 rounded-xl border border-rose-700/50 transition">Keluar dari Mode Admin</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction Form Modal (Tambah / Edit Transaksi) -->
+    <div id="transaction-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-cardnavy gold-border w-full max-w-sm rounded-2xl p-6 shadow-2xl relative space-y-4 animate-in fade-in zoom-in duration-200">
+            <div class="flex justify-between items-center pb-2 border-b border-gray-800">
+                <div class="flex items-center space-x-2">
+                    <i id="modal-icon" class="fa-solid fa-circle-plus text-gold"></i>
+                    <h3 id="modal-title" class="font-bold text-white text-base">Tambah Transaksi</h3>
+                </div>
+                <button onclick="closeTransactionModal()" class="text-gray-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <form id="transaction-form" onsubmit="saveTransaction(event)" class="space-y-4">
+                <input type="hidden" id="trans-id">
+                <input type="hidden" id="trans-type" value="masuk">
+                
+                <div>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">Nominal (Rp)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400 text-sm font-semibold">Rp</span>
+                        <input type="text" id="trans-nominal" required placeholder="0" oninput="formatNominalInput(this)" class="w-full bg-darknavy gold-border rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white placeholder-gray-600 gold-border-focus focus:outline-none font-semibold">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">Tanggal Transaksi</label>
+                    <input type="date" id="trans-date" required class="w-full bg-darknavy gold-border rounded-xl px-3.5 py-2.5 text-sm text-white gold-border-focus focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">Keterangan</label>
+                    <textarea id="trans-description" required rows="3" placeholder="Contoh: Iuran Warga Bulan Oktober / Pembelian Lampu Jalan" class="w-full bg-darknavy gold-border rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-gray-600 gold-border-focus focus:outline-none resize-none"></textarea>
+                </div>
+
+                <div class="flex space-x-2 pt-2">
+                    <button type="button" onclick="closeTransactionModal()" class="w-1/2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-semibold py-2.5 rounded-xl transition">Batal</button>
+                    <button type="submit" id="save-btn" class="w-1/2 gold-btn text-xs font-semibold py-2.5 rounded-xl shadow-lg">Simpan & Sinkronkan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Custom Notification / Message Box (Replaces alert) -->
+    <div id="message-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-cardnavy gold-border w-full max-w-xs rounded-2xl p-5 shadow-2xl text-center space-y-4">
+            <div id="message-icon-container" class="w-12 h-12 rounded-full bg-gold/10 text-gold mx-auto flex items-center justify-center text-xl">
+                <i id="message-icon" class="fa-solid fa-circle-check"></i>
+            </div>
+            <div>
+                <h4 id="message-title" class="font-bold text-white text-base mb-1">Pemberitahuan</h4>
+                <p id="message-text" class="text-xs text-gray-300 leading-relaxed">Pesan sistem...</p>
+            </div>
+            <button onclick="closeMessageModal()" class="w-full gold-btn text-xs font-semibold py-2.5 rounded-xl shadow-lg">OK</button>
+        </div>
+    </div>
+
+    <footer class="bg-darknavy/90 gold-border border-t py-3 text-center text-xs text-gray-500">
+        <p>&copy; 2026 ERTE 01. Transparan, Sinkron Real-Time & Profesional.</p>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Configuration & Initialization (RULE 1 & RULE 3 compliant)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'erte-01-keuangan-sync';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "AIzaSyDummyKeyForLocalPreview123456",
+            authDomain: "erte-01.firebaseapp.com",
+            projectId: "erte-01",
+            storageBucket: "erte-01.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef"
+        };
+
+        let app, db, auth;
+        let currentUser = null;
+        let transactions = [];
+        let isAdmin = localStorage.getItem('erte_01_is_admin') === 'true';
+        const ADMIN_PASSWORD_HASH = "rt01rw01"; // Password khusus admin yang diminta
+
+        // DOM Elements
+        const roleBadge = document.getElementById('role-badge');
+        const roleText = document.getElementById('role-text');
+        const adminActionBar = document.getElementById('admin-action-bar');
+        const transactionListEl = document.getElementById('transaction-list');
+        const totalSaldoEl = document.getElementById('total-saldo');
+        const summaryMasukEl = document.getElementById('summary-masuk');
+        const summaryKeluarEl = document.getElementById('summary-keluar');
+        const transactionCountEl = document.getElementById('transaction-count');
+
+        // Initialize Firebase safely
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+
+            const initAuth = async () => {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (err) {
+                    console.error("Auth fallback error:", err);
+                    await signInAnonymously(auth);
+                }
+            };
+
+            initAuth();
+
+            onAuthStateChanged(auth, (user) => {
+                currentUser = user;
+                if (user) {
+                    setupRealtimeListener();
+                }
+            });
+        } catch (e) {
+            console.warn("Firebase initialization warning (falling back to local mode):", e);
+            loadMockData();
+        }
+
+        updateAdminUI();
+
+        // Setup Firestore Realtime Listener for Instant Multi-User Synchronization (RULE 1 & 2)
+        function setupRealtimeListener() {
+            if (!db || !currentUser) return;
+            const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'transactions');
+            const q = query(colRef);
+
+            onSnapshot(q, (snapshot) => {
+                transactions = [];
+                snapshot.forEach((docSnap) => {
+                    transactions.push({ id: docSnap.id, ...docSnap.data() });
+                });
+                // Sort client-side by date descending
+                transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+                renderTransactions(transactions);
+                updateSummary(transactions);
+            }, (error) => {
+                console.error("Firestore snapshot error:", error);
+                showCustomMessage("Sinkronisasi Gagal", "Gagal menghubungkan ke server real-time.", "error");
+            });
+        }
+
+        // Mock data fallback if offline
+        function loadMockData() {
+            transactions = [
+                { id: '1', type: 'masuk', nominal: 2000000, date: '2026-10-01', description: 'Iuran Wajib Warga RT 01 Bulan Oktober' },
+                { id: '2', type: 'keluar', nominal: 450000, date: '2026-10-06', description: 'Perbaikan Lampu Jalan Utama' }
+            ];
+            renderTransactions(transactions);
+            updateSummary(transactions);
+        }
+
+        // Format number to Indonesian Rupiah with dots
+        window.formatRupiah = function(number) {
+            return new Intl.NumberFormat('id-ID').format(number);
+        };
+
+        // Automatic Real-time Thousand Separator for Inputs
+        window.formatNominalInput = function(input) {
+            let value = input.value.replace(/[^,\d]/g, '').toString();
+            let split = value.split(',');
+            let sisa = split[0].length % 3;
+            let rupiah = split[0].substr(0, sisa);
+            let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+            if (ribuan) {
+                let separator = sisa ? '.' : '';
+                rupiah += separator + ribuan.join('.');
+            }
+
+            rupiah = split[1] !== undefined ? rupiah + ',' + split[1] : rupiah;
+            input.value = rupiah;
+        };
+
+        function getPureNumber(formattedStr) {
+            if (!formattedStr) return 0;
+            return parseInt(formattedStr.toString().replace(/\./g, ''), 10) || 0;
+        }
+
+        // Dashboard Summary Calculations
+        function updateSummary(data) {
+            let totalMasuk = 0;
+            let totalKeluar = 0;
+
+            data.forEach(item => {
+                if (item.type === 'masuk') {
+                    totalMasuk += Number(item.nominal) || 0;
+                } else if (item.type === 'keluar') {
+                    totalKeluar += Number(item.nominal) || 0;
+                }
+            });
+
+            const saldo = totalMasuk - totalKeluar;
+
+            totalSaldoEl.innerText = `Rp ${formatRupiah(saldo)}`;
+            summaryMasukEl.innerText = `Rp ${formatRupiah(totalMasuk)}`;
+            summaryKeluarEl.innerText = `Rp ${formatRupiah(totalKeluar)}`;
+            transactionCountEl.innerText = `${data.length} Transaksi`;
+
+            if (saldo < 0) {
+                totalSaldoEl.className = "text-3xl font-bold tracking-tight text-rose-400 mb-3";
+            } else {
+                totalSaldoEl.className = "text-3xl font-bold tracking-tight text-white mb-3";
+            }
+        }
+
+        // Render Transactions List UI
+        function renderTransactions(data) {
+            if (data.length === 0) {
+                transactionListEl.innerHTML = `
+                    <div class="text-center py-12 bg-cardnavy/40 rounded-2xl gold-border">
+                        <i class="fa-solid fa-receipt text-gold/40 text-3xl mb-2"></i>
+                        <p class="text-xs text-gray-400">Belum ada riwayat transaksi tercatat.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            transactionListEl.innerHTML = data.map(item => {
+                const isMasuk = item.type === 'masuk';
+                const badgeColor = isMasuk ? 'text-emerald-400 bg-emerald-950/40 border-emerald-800/50' : 'text-rose-400 bg-rose-950/40 border-rose-800/50';
+                const iconClass = isMasuk ? 'fa-arrow-down-long text-emerald-400' : 'fa-arrow-up-long text-rose-400';
+                const sign = isMasuk ? '+' : '-';
+                
+                const dateObj = new Date(item.date);
+                const options = { day: 'numeric', month: 'short', year: 'numeric' };
+                const formattedDate = !isNaN(dateObj) ? dateObj.toLocaleDateString('id-ID', options) : item.date;
+
+                return `
+                    <div class="bg-cardnavy gold-border rounded-2xl p-4 shadow-md hover:border-gold/60 transition flex items-center justify-between">
+                        <div class="flex items-center space-x-3.5">
+                            <div class="w-10 h-10 rounded-xl border ${badgeColor} flex items-center justify-center shrink-0">
+                                <i class="fa-solid ${iconClass} text-sm"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-white text-xs md:text-sm line-clamp-1">${escapeHtml(item.description)}</h4>
+                                <span class="text-[11px] text-gray-400 flex items-center mt-0.5">
+                                    <i class="fa-regular fa-calendar mr-1"></i> ${formattedDate}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <span class="block font-bold text-xs md:text-sm ${isMasuk ? 'text-emerald-400' : 'text-rose-400'}">
+                                ${sign} Rp ${formatRupiah(item.nominal)}
+                            </span>
+                            ${isAdmin ? `
+                                <div class="flex space-x-2 justify-end mt-1.5">
+                                    <button onclick="editTransaction('${item.id}')" class="text-gray-400 hover:text-gold text-[11px] px-1.5 py-0.5 rounded bg-darknavy border border-gray-800 transition" title="Edit">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </button>
+                                    <button onclick="deleteTransaction('${item.id}')" class="text-gray-400 hover:text-rose-400 text-[11px] px-1.5 py-0.5 rounded bg-darknavy border border-gray-800 transition" title="Hapus">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Filter and Search Transactions
+        window.filterTransactions = function() {
+            const keyword = document.getElementById('search-input').value.toLowerCase();
+            const typeFilter = document.getElementById('filter-type').value;
+
+            const filtered = transactions.filter(item => {
+                const matchKeyword = item.description.toLowerCase().includes(keyword);
+                const matchType = typeFilter === 'all' || item.type === typeFilter;
+                return matchKeyword && matchType;
+            });
+
+            renderTransactions(filtered);
+        };
+
+        // Admin Authentication Modals & Logic (Password: rt01rw01)
+        window.openLoginModal = function() {
+            if (isAdmin) {
+                document.getElementById('login-modal').classList.remove('hidden');
+                document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('logout-container').classList.remove('hidden');
+            } else {
+                document.getElementById('login-modal').classList.remove('hidden');
+                document.getElementById('login-form').classList.remove('hidden');
+                document.getElementById('logout-container').classList.add('hidden');
+                document.getElementById('admin-password-input').value = '';
+                document.getElementById('login-error').classList.add('hidden');
+            }
+        };
+
+        window.closeLoginModal = function() {
+            document.getElementById('login-modal').classList.add('hidden');
+        };
+
+        window.togglePasswordVisibility = function() {
+            const pwdInput = document.getElementById('admin-password-input');
+            const eyeIcon = document.getElementById('eye-icon');
+            if (pwdInput.type === 'password') {
+                pwdInput.type = 'text';
+                eyeIcon.className = 'fa-solid fa-eye-slash';
+            } else {
+                pwdInput.type = 'password';
+                eyeIcon.className = 'fa-solid fa-eye';
+            }
+        };
+
+        window.handleAdminLogin = function(e) {
+            e.preventDefault();
+            const inputPwd = document.getElementById('admin-password-input').value;
+            if (inputPwd === ADMIN_PASSWORD_HASH) {
+                isAdmin = true;
+                localStorage.setItem('erte_01_is_admin', 'true');
+                closeLoginModal();
+                updateAdminUI();
+                renderTransactions(transactions);
+                showCustomMessage("Berhasil Masuk", "Anda masuk sebagai Admin ERTE 01. Perubahan data akan langsung tersinkron ke semua warga.", "success");
+            } else {
+                document.getElementById('login-error').classList.remove('hidden');
+            }
+        };
+
+        window.handleAdminLogout = function() {
+            isAdmin = false;
+            localStorage.removeItem('erte_01_is_admin');
+            closeLoginModal();
+            updateAdminUI();
+            renderTransactions(transactions);
+            showCustomMessage("Keluar Admin", "Anda kembali ke Mode Anggota (Read-Only).", "info");
+        };
+
+        function updateAdminUI() {
+            if (isAdmin) {
+                roleBadge.className = "px-3 py-1.5 rounded-full text-xs font-medium bg-gold/20 border border-gold text-gold flex items-center space-x-1.5 shadow-sm";
+                roleText.innerText = "Mode Admin (Aktif)";
+                adminActionBar.classList.remove('hidden');
+            } else {
+                roleBadge.className = "px-3 py-1.5 rounded-full text-xs font-medium gold-border bg-cardnavy text-gold hover:bg-gold/10 transition flex items-center space-x-1.5";
+                roleText.innerText = "Mode Anggota";
+                adminActionBar.classList.add('hidden');
+            }
+        }
+
+        // Transaction Modals
+        window.openTransactionModal = function(type) {
+            if (!isAdmin) {
+                openLoginModal();
+                return;
+            }
+            document.getElementById('transaction-modal').classList.remove('hidden');
+            document.getElementById('trans-id').value = '';
+            document.getElementById('trans-type').value = type;
+            document.getElementById('trans-nominal').value = '';
+            
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('trans-date').value = today;
+            document.getElementById('trans-description').value = '';
+
+            const modalTitle = document.getElementById('modal-title');
+            const modalIcon = document.getElementById('modal-icon');
+
+            if (type === 'masuk') {
+                modalTitle.innerText = 'Catat Uang Masuk';
+                modalIcon.className = 'fa-solid fa-circle-plus text-emerald-400';
+            } else {
+                modalTitle.innerText = 'Catat Uang Keluar';
+                modalIcon.className = 'fa-solid fa-circle-minus text-rose-400';
+            }
+        };
+
+        window.closeTransactionModal = function() {
+            document.getElementById('transaction-modal').classList.add('hidden');
+        };
+
+        window.editTransaction = function(id) {
+            if (!isAdmin) return;
+            const item = transactions.find(t => t.id === id);
+            if (!item) return;
+
+            document.getElementById('transaction-modal').classList.remove('hidden');
+            document.getElementById('trans-id').value = item.id;
+            document.getElementById('trans-type').value = item.type;
+            document.getElementById('trans-nominal').value = formatRupiah(item.nominal);
+            document.getElementById('trans-date').value = item.date;
+            document.getElementById('trans-description').value = item.description;
+
+            const modalTitle = document.getElementById('modal-title');
+            const modalIcon = document.getElementById('modal-icon');
+
+            if (item.type === 'masuk') {
+                modalTitle.innerText = 'Edit Uang Masuk';
+                modalIcon.className = 'fa-solid fa-pen-to-square text-emerald-400';
+            } else {
+                modalTitle.innerText = 'Edit Uang Keluar';
+                modalIcon.className = 'fa-solid fa-pen-to-square text-rose-400';
+            }
+        };
+
+        // Save Transaction to Cloud (Triggers Instant Real-Time Update for All Connected Members)
+        window.saveTransaction = async function(e) {
+            e.preventDefault();
+            if (!isAdmin) return;
+
+            const id = document.getElementById('trans-id').value;
+            const type = document.getElementById('trans-type').value;
+            const rawNominal = document.getElementById('trans-nominal').value;
+            const nominal = getPureNumber(rawNominal);
+            const date = document.getElementById('trans-date').value;
+            const description = document.getElementById('trans-description').value;
+
+            if (nominal <= 0) {
+                showCustomMessage("Nominal Tidak Valid", "Mohon masukkan nominal angka yang benar.", "error");
+                return;
+            }
+
+            try {
+                if (db && currentUser) {
+                    const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'transactions');
+                    if (id) {
+                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'transactions', id);
+                        await updateDoc(docRef, { type, nominal, date, description, updatedAt: new Date().toISOString() });
+                        showCustomMessage("Tersinkron", "Data berhasil diperbarui dan disiarkan live ke seluruh warga.", "success");
+                    } else {
+                        await addDoc(colRef, { type, nominal, date, description, createdAt: new Date().toISOString() });
+                        showCustomMessage("Tersinkron", "Transaksi baru berhasil disimpan & langsung tampil di aplikasi anggota.", "success");
+                    }
+                } else {
+                    if (id) {
+                        const idx = transactions.findIndex(t => t.id === id);
+                        if (idx !== -1) {
+                            transactions[idx] = { id, type, nominal, date, description };
+                        }
+                    } else {
+                        transactions.push({ id: Date.now().toString(), type, nominal, date, description });
+                    }
+                    renderTransactions(transactions);
+                    updateSummary(transactions);
+                    showCustomMessage("Tersinkron", "Transaksi disimpan (mode lokal).", "success");
+                }
+
+                closeTransactionModal();
+            } catch (err) {
+                console.error("Error saving transaction:", err);
+                showCustomMessage("Gagal", "Terjadi kesalahan saat menyinkronkan data.", "error");
+            }
+        };
+
+        // Delete Transaction from Cloud (Instant Live Sync)
+        window.deleteTransaction = async function(id) {
+            if (!isAdmin) return;
+            
+            if (confirm("Apakah Anda yakin ingin menghapus catatan transaksi ini? Perubahan akan langsung menghapus data di perangkat semua anggota.")) {
+                try {
+                    if (db && currentUser) {
+                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'transactions', id);
+                        await deleteDoc(docRef);
+                        showCustomMessage("Terhapus & Tersinkron", "Data transaksi berhasil dihapus dari sistem warga.", "success");
+                    } else {
+                        transactions = transactions.filter(t => t.id !== id);
+                        renderTransactions(transactions);
+                        updateSummary(transactions);
+                        showCustomMessage("Terhapus", "Data transaksi dihapus.", "success");
+                    }
+                } catch (err) {
+                    console.error("Error deleting transaction:", err);
+                    showCustomMessage("Gagal", "Gagal menghapus data transaksi.", "error");
+                }
+            }
+        };
+
+        // Custom Notification Modal
+        window.showCustomMessage = function(title, text, type = 'success') {
+            const modal = document.getElementById('message-modal');
+            document.getElementById('message-title').innerText = title;
+            document.getElementById('message-text').innerText = text;
+            
+            const iconContainer = document.getElementById('message-icon-container');
+            const icon = document.getElementById('message-icon');
+
+            if (type === 'error') {
+                iconContainer.className = 'w-12 h-12 rounded-full bg-rose-500/10 text-rose-400 mx-auto flex items-center justify-center text-xl';
+                icon.className = 'fa-solid fa-triangle-exclamation';
+            } else if (type === 'success') {
+                iconContainer.className = 'w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-400 mx-auto flex items-center justify-center text-xl';
+                icon.className = 'fa-solid fa-circle-check';
+            } else {
+                iconContainer.className = 'w-12 h-12 rounded-full bg-gold/10 text-gold mx-auto flex items-center justify-center text-xl';
+                icon.className = 'fa-solid fa-circle-info';
+            }
+
+            modal.classList.remove('hidden');
+        };
+
+        window.closeMessageModal = function() {
+            document.getElementById('message-modal').classList.add('hidden');
+        };
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
+```
